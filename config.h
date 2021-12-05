@@ -76,7 +76,7 @@ static const char *volume_down[] = {"amixer", "-q", "sset", "Master", "2%-", NUL
 static const char *volume_mute[] = {"amixer", "-q", "sset", "Master", "toggle", NULL};
 static const char *flameshot_gui[] = {"flameshot", "gui", NULL};
 static const char *flameshot_clipboard[] = {"flameshot", "full", "-c", NULL};
-static const char *flameshot_launcher[] = {"flameshot", "laucher", NULL};
+static const char *flameshot_launcher[] = {"flameshot", "launcher", NULL};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
