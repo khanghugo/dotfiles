@@ -74,6 +74,9 @@ static const char *brightness_down[]  = { "xbacklight", "-dec", "5%", NULL };
 static const char *volume_up[] = {"amixer", "-q", "sset", "Master", "2%+", NULL};
 static const char *volume_down[] = {"amixer", "-q", "sset", "Master", "2%-", NULL};
 static const char *volume_mute[] = {"amixer", "-q", "sset", "Master", "toggle", NULL};
+static const char *flameshot_gui[] = {"flameshot", "gui", NULL};
+static const char *flameshot_clipboard[] = {"flameshot", "full", "-c", NULL};
+static const char *flameshot_launcher[] = {"flameshot", "laucher", NULL};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -97,7 +100,7 @@ static Key keys[] = {
 	//{ MODKEY,                       XK_r,      setlayout,      {.v = &layouts[3]} },
 	//{ MODKEY|ShiftMask,             XK_r,      setlayout,      {.v = &layouts[4]} },
 	//{ MODKEY,                       XK_space,  setlayout,      {0} },
-	//{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
 	//{ MODKEY|ShiftMask,             XK_space,  togglealwaysontop, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
@@ -108,11 +111,14 @@ static Key keys[] = {
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
 	{ MODKEY,                       XK_equal,  setgaps,        {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_equal,  setgaps,        {.i = 0  } },
-	{0,       XF86XK_MonBrightnessUp, spawn,    {.v=brightness_up}},
-	 {0,       XF86XK_MonBrightnessDown, spawn, {.v=brightness_down}},
-	{0, XF86XK_AudioRaiseVolume, spawn, {.v=volume_up}},
-	{0, XF86XK_AudioLowerVolume, spawn, {.v=volume_down}},
-	{0, XF86XK_AudioMute, spawn, {.v=volume_mute}},
+	{ 0,       		XF86XK_MonBrightnessUp, 	spawn,    	{.v = brightness_up}},
+	{ 0,       		XF86XK_MonBrightnessDown, 	spawn, 		{.v = brightness_down}},
+	{ 0, 			XF86XK_AudioRaiseVolume, 	spawn, 		{.v = volume_up}},
+	{ 0, 			XF86XK_AudioLowerVolume, 	spawn, 		{.v = volume_down}},
+	{ 0, 			XF86XK_AudioMute, 			spawn, 		{.v = volume_mute}},
+	{ 0, 							XK_Print, 	spawn,		{.v = flameshot_gui}},
+	{ MODKEY, 						XK_Print, 	spawn,		{.v = flameshot_clipboard}},
+	{ MODKEY|ShiftMask, 			XK_Print, 	spawn,		{.v = flameshot_launcher}},
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
