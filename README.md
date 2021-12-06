@@ -3,11 +3,17 @@ It's dwm, you know what to do.
 patches installed
 
 autostart
+
 colorbar
+
 fibonacci
+
 fullgaps
+
 status2d
+
 statusallmons
+
 systray
 
 and lots of customization
