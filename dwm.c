@@ -934,7 +934,7 @@ drawbar(Monitor *m)
 		stw = getsystraywidth();
 
 	/* draw status first so it can be overdrawn by tags later */
-	if (m == selmon || 1) { /* status is only drawn on selected monitor */
+	if (m == selmon || statusall) { /* status is only drawn on selected monitor */
 		//tw = m->ww - drawstatusbar(m, bh, stext);
 		drw_setscheme(drw, scheme[SchemeStatus]);
 		tw = TEXTW(stext) - lrpad / 2 + 2; /* 2px extra right padding */
@@ -1014,9 +1014,8 @@ expose(XEvent *e)
 	XExposeEvent *ev = &e->xexpose;
 
 	if (ev->count == 0 && (m = wintomon(ev->window))) {
-		drawbar(m);
-		if (m == selmon)
-			updatesystray();
+		statusall ? drawbars() : drawbar(m);drawbar(m);
+		updatesystray();
 	}
 }
 
@@ -1512,7 +1511,7 @@ propertynotify(XEvent *e)
 		if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
 			updatetitle(c);
 			if (c == c->mon->sel)
-				drawbar(c->mon);
+				statusall ? drawbars() : drawbar(c->mon);
 		}
 		if (ev->atom == netatom[NetWMWindowType])
 			updatewindowtype(c);
@@ -1660,7 +1659,7 @@ restack(Monitor *m)
 	XEvent ev;
 	XWindowChanges wc;
 
-	drawbar(m);
+	statusall ? drawbars() : drawbar(m);
 	if (!m->sel)
 		return;
 	if (m->sel->isfloating || !m->lt[m->sellt]->arrange)
@@ -1925,7 +1924,7 @@ setlayout(const Arg *arg)
 	if (selmon->sel)
 		arrange(selmon);
 	else
-		drawbar(selmon);
+		statusall ? drawbars() : drawbar(selmon);
 }
 
 /* arg > 1.0 will set mfact absolutely */
@@ -2445,9 +2444,11 @@ updatestatus(void)
 	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
 		strcpy(stext, "dwm-"VERSION);
 	for (m=mons; m; m = m->next) {
-		drawbar(m);
-		updatesystray();
+		if (statusall)
+			drawbar(m);
 	}
+	//statusall ? drawbars() : drawbar(selmon);
+	updatesystray();
 }
 
 void
