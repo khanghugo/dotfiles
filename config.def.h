@@ -2,8 +2,13 @@
 #include <X11/XF86keysym.h>
 /* appearance */
 static const unsigned int borderpx  = 5;        /* border pixel of windows */
-static const unsigned int gappx     = 5;        /* gaps between windows */
+static const unsigned int gappx     = 0;        /* gaps between windows */
 static const unsigned int snap      = 32;       /* snap pixel */
+static const unsigned int systraypinning = 0;   /* 0: sloppy systray follows selected monitor, >0: pin systray to monitor X */
+static const unsigned int systrayonleft = 0;   	/* 0: systray in the right corner, >0: systray on left of status text */
+static const unsigned int systrayspacing = 5;   /* systray spacing */
+static const int systraypinningfailfirst = 1;   /* 1: if pinning fails, display systray on the first monitor, False: display systray on the last monitor*/
+static const int showsystray        = 1;     /* 0 means no systray */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
 static const char *fonts[]          = { "monospace:size=10" };
@@ -43,11 +48,14 @@ static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen win
 #include "fibonacci.c"
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
+	//{ "[]=",      tile },    /* first entry is default */
+	//{ "><>",      NULL },    /* no layout function means floating behavior */
+
  	{ "[@]",      spiral },
- 	{ "[\\]",      dwindle },
+ 	{ "[]=",      tile },
+ 	{ "[M]",      monocle },
+ 	{ NULL,       NULL },
+ 	//{ "[\\]",      dwindle },
 };
 
 /* key definitions */
@@ -71,10 +79,13 @@ static const char *brightness_down[]  = { "xbacklight", "-dec", "5%", NULL };
 static const char *volume_up[] = {"amixer", "-q", "sset", "Master", "2%+", NULL};
 static const char *volume_down[] = {"amixer", "-q", "sset", "Master", "2%-", NULL};
 static const char *volume_mute[] = {"amixer", "-q", "sset", "Master", "toggle", NULL};
+static const char *flameshot_gui[] = {"flameshot", "gui", NULL};
+static const char *flameshot_clipboard[] = {"flameshot", "full", "-c", NULL};
+static const char *flameshot_launcher[] = {"flameshot", "launcher", NULL};
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-	{ MODKEY,                       XK_p,      spawn,          {.v = dmenucmd } },
+	{ MODKEY,                       XK_x,      spawn,          {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_Return, spawn,          {.v = termcmd } },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
@@ -86,14 +97,16 @@ static Key keys[] = {
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
-	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
-	{ MODKEY,                       XK_r,      setlayout,      {.v = &layouts[3]} },
-	{ MODKEY|ShiftMask,             XK_r,      setlayout,      {.v = &layouts[4]} },
-	{ MODKEY,                       XK_space,  setlayout,      {0} },
+	//{ MODKEY|ControlMask,			XK_comma,  cyclelayout,    {.i = -1 } },
+	{ MODKEY|ControlMask,           XK_t, cyclelayout,    {.i = +1 } },
+	//{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
+	//{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
+	//{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	//{ MODKEY,                       XK_r,      setlayout,      {.v = &layouts[3]} },
+	//{ MODKEY|ShiftMask,             XK_r,      setlayout,      {.v = &layouts[4]} },
+	//{ MODKEY,                       XK_space,  setlayout,      {0} },
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
-	{ MODKEY|ShiftMask,             XK_space,  togglealwaysontop, {0} },
+	//{ MODKEY|ShiftMask,             XK_space,  togglealwaysontop, {0} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
@@ -103,11 +116,14 @@ static Key keys[] = {
 	{ MODKEY,                       XK_minus,  setgaps,        {.i = -1 } },
 	{ MODKEY,                       XK_equal,  setgaps,        {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_equal,  setgaps,        {.i = 0  } },
-	{0,       XF86XK_MonBrightnessUp, spawn,    {.v=brightness_up}},
-	 {0,       XF86XK_MonBrightnessDown, spawn, {.v=brightness_down}},
-	{0, XF86XK_AudioRaiseVolume, spawn, {.v=volume_up}},
-	{0, XF86XK_AudioLowerVolume, spawn, {.v=volume_down}},
-	{0, XF86XK_AudioMute, spawn, {.v=volume_mute}},
+	{ 0,       		XF86XK_MonBrightnessUp, 	spawn,    	{.v = brightness_up}},
+	{ 0,       		XF86XK_MonBrightnessDown, 	spawn, 		{.v = brightness_down}},
+	{ 0, 			XF86XK_AudioRaiseVolume, 	spawn, 		{.v = volume_up}},
+	{ 0, 			XF86XK_AudioLowerVolume, 	spawn, 		{.v = volume_down}},
+	{ 0, 			XF86XK_AudioMute, 			spawn, 		{.v = volume_mute}},
+	{ 0, 							XK_Print, 	spawn,		{.v = flameshot_gui}},
+	{ MODKEY, 						XK_Print, 	spawn,		{.v = flameshot_clipboard}},
+	{ MODKEY|ShiftMask, 			XK_Print, 	spawn,		{.v = flameshot_launcher}},
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
@@ -136,4 +152,3 @@ static Button buttons[] = {
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 };
-
