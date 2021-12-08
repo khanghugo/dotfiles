@@ -19,5 +19,5 @@ systray
 and lots of customization
 you can read the keybinds and the variables to change it
 
-![pic1](pics/p1.png)
-![pic2](pics/p2.png)
+![pic1](dwm/pics/p1.png)
+![pic2](dwm/pics/p2.png)
