@@ -19,5 +19,5 @@ systray
 and lots of customization
 you can read the keybinds and the variables to change it
 
-![pic1](dwm/pics/p1.png)
-![pic2](dwm/pics/p2.png)
+![pic1](https://github.com/khanghugo/dwm/blob/master/pics/p1.png?raw=true)
+![pic2](https://github.com/khanghugo/dwm/blob/master/pics/p2.png?raw=true)
