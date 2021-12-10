@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+# xrandr --output
+nitrogen --restore &
+exec slstatus &
+
+#
+#xinput -set-prop 12 348 1
+setxkbmap -layout us,us -variant colemak_dh, -option grp:shifts_toggle
+
+# redshift -t 6500:3500
+
+xcompmgr &
+# zsh ~/weather.sh &
