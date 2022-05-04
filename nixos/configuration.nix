@@ -22,6 +22,7 @@
   boot.loader = {
     systemd-boot.enable = true;
     efi.canTouchEfiVariables = true;
+    systemd-boot.consoleMode = "auto";
   };
 
 
@@ -29,12 +30,14 @@
   ## KERNEL
   #########
   # boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.supportedFilesystems = [ "ntfs" ];
+
 
   ########
   ## HOST
   ########
-  networking.hostName = "painmachine"; # Define your hostname.
-  networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+
+
 
 
   #########
@@ -42,25 +45,6 @@
   #########
   time.timeZone = "America/New_York";
   i18n.defaultLocale = "en_US.UTF-8";
-
-
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  networking.useDHCP = false;
-  networking.interfaces.eno1.useDHCP = true;
-  networking.interfaces.wlo1.useDHCP = true;
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Select internationalisation properties.
-
-  # console = {
-  #   font = "Lat2-Terminus16";
-  #   keyMap = "us";
-  # };
 
 
   #########
@@ -106,45 +90,34 @@
   ##########
   ## OVERLAY
   ##########
-  #nixpkgs.overlays = [
-   # (final: prev: {
-    #  dwm = prev.dwm.overrideAttrs (old: { src = /home/khang/dwm ;});
-
-	#st = prev.st.overrideAttrs (old: { 
-		#src = pkgs.fetchFromGitHub {
-		#	owner = "khanghugo";
-		#	repo = "st";
-		#	rev = "827b907f88552e08e77a75139c4f0275cbd9365b";
-		#	sha256 = "0whyygr55y8qfqg9scd55lvb6ay5kphnxawiwah1fbl0clgzwfgf";
-		#	}; 
-		#
-		#src = builtins.fetchTarball {
-		#	url = "https://api.github.com/repos/khanghugo/st/tarball/master" ;
-		#	};
-		#
-		#src = pkgs.fetchgit {
-		#	url = "https://github.com/khanghugo/st.git" ;
-		#	sha256 = "0whyygr55y8qfqg9scd55lvb6ay5kphnxawiwah1fbl0clgzwfgf";
-		#	};
-
-		#src = /home/khang/st ;
-	
-		#}
-	#);
-   # })
-  #];
-
   nixpkgs.overlays = [
     (self: super: {
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
         src = /home/khang/suckless/dwm ;  
-	});
+      });
        
       slstatus = super.slstatus.overrideAttrs (oldAttrs: rec {
-	patches = [
-		/home/khang/default_suckless/slstatus-config-header.diff # this is a generated diff file
-		] ; 
-	}); 
+        patches = [
+		      /home/khang/default_suckless/slstatus-config-header.diff # this is a generated diff file
+		    ]; 
+      }); 
+
+      dmenu = super.dwm.overrideAttrs (oldAttrs: rec {
+        src = /home/khang/suckless/dmenu ;
+      });
+
+      slock = super.slock.overrideAttrs (oldAttrs: rec {
+        src = /home/khang/suckless/slock;
+        buildInputs = oldAttrs.buildInputs ++ [
+          self.imlib2 
+          self.xorg.libXinerama 
+          self.xorg.libXft
+        ]; 
+      });
+
+      st = super.st.overrideAttrs (oldAttrs: rec {
+        src = /home/khang/suckless/st;
+      });
     })
   ];
 		
@@ -159,10 +132,10 @@
 	};
 	
   
-  ##################################
-  ## Enable CUPS to print documents.
-  ##################################
-   services.printing.enable = true;
+  #######
+  ## CUPS
+  #######
+    services.printing.enable = true;
 
 
   ###########
@@ -179,15 +152,9 @@
   };
 
 
-  ####################################################################
-  ## Enable touchpad support (enabled default in most desktopManager).
-  ####################################################################
-  # services.xserver.libinput.enable = true;
-
-
-  ###########
-  ## ACCOUNT.
-  ###########
+  ##########
+  ## ACCOUNT
+  ##########
   users.users.khang = {
     isNormalUser = true;
     extraGroups = [ "wheel" ]; 
@@ -203,37 +170,56 @@
   ## PACKAGE
   ##########
   environment.systemPackages = with pkgs; [
+    # editors
     vim
     emacs
+    sublime4
+
+    # net
     wget
+    curl
+
+    # browser
     firefox
     chromium
+    lynx
+
+    # dirty packages
     networkmanager
     networkmanagerapplet
-	  pfetch
+    pavucontrol
+    pcmanfm
+
+    # dev
     git
     gnumake
     gcc
-    (st.overrideAttrs (oldAttrs: rec {
-      src = /home/khang/suckless/st ;
-    }))
-
-    (dmenu.overrideAttrs (oldAttrs: rec {
-      src = /home/khang/suckless/dmenu ;
-    }))
-
-    slstatus
-    pavucontrol
-    easyeffects
     python310
-    xorg.xbacklight
-    gimp
+    man
+    man-pages
+
+    # utils
+	  pfetch
     yt-dlp
-    mpv
     p7zip
     xclip
-    lynx
-    sublime4
+
+    # app
+    easyeffects
+    flatpak
+    gimp
+    mpv
+
+    # suckless
+    dwm
+    slstatus
+    slock
+    dmenu
+    st
+
+    # library
+
+    imlib2
   ];
 
 
@@ -243,6 +229,7 @@
   fonts.fonts = with pkgs; [
     font-awesome
     hack-font
+    terminus_font
   ];
 
 
@@ -259,6 +246,43 @@
     '');
   };
 
+  # vim
+  environment.variables.VIM = "/etc/vim";
+  environment.variables.VIMRUNTIME = "/etc/vim";
+  environment.etc."vim/vimrc".text = ''
+    set nocompatible
+    
+    set number 
+    set showmatch 
+    set visualbell
+     
+    set hlsearch
+    set smartcase
+    set ignorecase
+    set incsearch
+     
+    set autoindent
+    set shiftwidth=4
+    set smartindent
+    set smarttab
+    set softtabstop=4
+     
+    set ruler
+     
+    set undolevels=1000
+  '';
+  environment.etc."vim/defaults.vim".text = ''
+  '';
+
+  # mpv
+  environment.etc."mpv.conf".text = ''
+    force-window=immediate
+    keep-open=yes
+    keep-open-pause=yes
+    volume=60
+  '';
+
+
   ###########
   ## PROGRAMS
   ###########
@@ -271,55 +295,59 @@
         clipo = "xclip -sel c -o";
         wiki = "lynx gopher://gopherpedia.com";
         ddg = "lynx https://lite.duckduckgo.com/lite";
+        rm = "rm -I";
       };
 
       shellInit = ''
       '';
-
     }; 
+
+    slock.enable = true;
   };
-  #programs.ssh.askPassword = ""; # ssh will ask for password inside the terminal
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
 
-  # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
+  ##########
+  ## SERVICES
+  ##########
+  systemd.services = {
+  };
+  security.pki.certificateFiles = [
+    "/home/khang/Downloads/openvpn/ca.crt"
+    "/home/khang/Downloads/openvpn/taarst.crt"
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+  ];
+  services.flatpak.enable = true;
+  xdg.portal.enable = true; # goes with if no gnome
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "21.11"; # Did you read the comment?
+
+  ##########
+  ## NETWORK
+  ##########
+  networking.networkmanager = {
+    enable = true;
+    dhcp = "dhcpcd";
+  };
+
+  networking.hostName = "painmachine"; # Define your hostname.
+  #networking.wireless = {
+  #  enable = true;  # Enables wireless support via wpa_supplicant. 
+  #  userControlled.enable = true;
+  #};
 
 
   #########
   ## NVIDIA
   #########
- hardware.nvidia = {
-   modesetting.enable = true;
+  hardware.nvidia = {
+    modesetting.enable = true;
 
-   prime = {
-     sync.enable = true;
-     intelBusId = "PCI:0:2:0";
-     nvidiaBusId = "PCI:1:0:0";
-   };
- };
+    prime = {
+      sync.enable = true;
+      intelBusId = "PCI:0:2:0";
+      nvidiaBusId = "PCI:1:0:0";
+    };
+  };
 
   #hardware.opengl = {
   #    enable = true;
@@ -332,5 +360,21 @@
   #        libvdpau-va-gl
   #    ];
   #};
+
+
+  ### REMNANTS
+
+  networking.useDHCP = false;
+  networking.interfaces.eno1.useDHCP = true;
+  networking.interfaces.wlo1.useDHCP = true;
+  # services.xserver.libinput.enable = true;
+
+  # This value determines the NixOS release from which the default
+  # settings for stateful data, like file locations and database versions
+  # on your system were taken. It‘s perfectly fine and recommended to leave
+  # this value at the release version of the first install of this system.
+  # Before changing this value read the documentation for this option
+  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
+  system.stateVersion = "21.11"; # Did you read the comment?
 }
 
