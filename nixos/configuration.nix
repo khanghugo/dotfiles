@@ -93,7 +93,12 @@
   nixpkgs.overlays = [
     (self: super: {
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
-        src = /home/khang/suckless/dwm ;  
+        src = super.fetchFromGitHub {
+          owner = "khanghugo";
+          repo = "dwm";
+          rev = "f57ee50698ff65e464c3f2661e0ab2aaa9849cea";
+          sha256 = "1i1g94wavv9ywzs3kc1isb91rfy3bpfh4fj78hch25ccs46w9gn1";
+        };  
       });
        
       slstatus = super.slstatus.overrideAttrs (oldAttrs: rec {
@@ -103,11 +108,21 @@
       }); 
 
       dmenu = super.dwm.overrideAttrs (oldAttrs: rec {
-        src = /home/khang/suckless/dmenu ;
+        src = super.fetchFromGitHub {
+          owner = "khanghugo";
+          repo = "dmenu";
+          rev = "85390236cc517055457a78a5bda79082a28efcee";
+          sha256 = "00bs9rk13nprqd7mfxvsria7p67pd5dn4wj320h8bs9fyl1w41jv";
+        };
       });
 
       slock = super.slock.overrideAttrs (oldAttrs: rec {
-        src = /home/khang/suckless/slock;
+        src = super.fetchFromGitHub {
+          owner = "khanghugo";
+          repo = "slock";
+          rev = "8279acab9bbae8e697e4782a4da638a3e3b31854";
+          sha256 = "101isjm90a2jdr9z336h1rxarppxfxvw4nvq3cid7nn32q66hyhn";
+        };
         buildInputs = oldAttrs.buildInputs ++ [
           self.imlib2 
           self.xorg.libXinerama 
@@ -116,7 +131,12 @@
       });
 
       st = super.st.overrideAttrs (oldAttrs: rec {
-        src = /home/khang/suckless/st;
+        src = super.fetchFromGitHub {
+          owner = "khanghugo";
+          repo = "st";
+          rev = "8f5002c2499c8a61e0331e47907c2f08a98d8885";
+          sha256 = "0nh84sry02qqmpq2lbcdvcga3xskj471w9qbh3d9h1mvplqvqa77";
+        };
       });
     })
   ];
@@ -175,10 +195,6 @@
     emacs
     sublime4
 
-    # net
-    wget
-    curl
-
     # browser
     firefox
     chromium
@@ -203,6 +219,8 @@
     yt-dlp
     p7zip
     xclip
+    wget
+    curl
 
     # app
     easyeffects
@@ -218,8 +236,6 @@
     st
 
     # library
-
-    imlib2
   ];
 
 
