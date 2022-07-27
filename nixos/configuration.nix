@@ -2,7 +2,7 @@
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
 
-{ config, pkgs, ... }:
+{ lib, config, pkgs, ... }:
 
 {
   imports =
@@ -10,188 +10,94 @@
       ./hardware-configuration.nix
     ];
 
-  ################
-  ## allow unfree
-  ################
-  nixpkgs.config.allowUnfree = true;
 
-
-  ##############
-  ## BOOTLOADER.
-  ##############
-  boot.loader = {
-    systemd-boot.enable = true;
-    efi.canTouchEfiVariables = true;
-    systemd-boot.consoleMode = "auto";
-  };
-
-
-  #########
-  ## KERNEL
-  #########
-  # boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.supportedFilesystems = [ "ntfs" ];
-
-
-  ########
-  ## HOST
-  ########
-
-
-
-
-  #########
-  ## LOCALE
-  #########
+  ##########
+  ## SYSTEM
+  ##########
+  # locale
   time.timeZone = "America/New_York";
   i18n.defaultLocale = "en_US.UTF-8";
 
+  # fs
+  boot.supportedFilesystems = [ "ntfs" ];
 
-  #########
-  ## WM/DE
-  #########
-	services.xserver = {
-    enable = true;
+  # kernel
+  # boot.kernelPackages = pkgs.linuxPackages_latest; # will get bleeding edge
 
-    videoDrivers = [ "nvidia" ];
-    #deviceSection = ''
-    #  Option "DRI" "2"
-    #  Option "TearFree" "true"
-    #'';
-
-		desktopManager = {
-			xfce.enable = true;
-      # plasma5.enable = true;
-		};
-
-		displayManager = {
-			defaultSession = "none+dwm";
-      
-      lightdm = {
-        enable = true;
-      };
-
-      ## true if tty or dwm
-			startx.enable = true;
-		};
-
-      windowManager = {
-        dwm.enable = true;
-    };
+  # bootloader
+  boot.loader = {
+    systemd-boot.enable = true;
+    efi.canTouchEfiVariables = true;
+    systemd-boot.consoleMode = "max";
   };
 
+  # cups 
+  services.printing.enable = true;
 
-  ##########
-  ## WAYLAND
-  ##########
-  programs.sway.enable = true;
-
-
-  ##########
-  ## OVERLAY
-  ##########
-  nixpkgs.overlays = [
-    (self: super: {
-      dwm = super.dwm.overrideAttrs (oldAttrs: rec {
-        src = super.fetchFromGitHub {
-          owner = "khanghugo";
-          repo = "dwm";
-          rev = "f57ee50698ff65e464c3f2661e0ab2aaa9849cea";
-          sha256 = "1i1g94wavv9ywzs3kc1isb91rfy3bpfh4fj78hch25ccs46w9gn1";
-        };  
-      });
-       
-      slstatus = super.slstatus.overrideAttrs (oldAttrs: rec {
-        patches = [
-		      /home/khang/default_suckless/slstatus-config-header.diff # this is a generated diff file
-		    ]; 
-      }); 
-
-      dmenu = super.dwm.overrideAttrs (oldAttrs: rec {
-        src = super.fetchFromGitHub {
-          owner = "khanghugo";
-          repo = "dmenu";
-          rev = "85390236cc517055457a78a5bda79082a28efcee";
-          sha256 = "00bs9rk13nprqd7mfxvsria7p67pd5dn4wj320h8bs9fyl1w41jv";
-        };
-      });
-
-      slock = super.slock.overrideAttrs (oldAttrs: rec {
-        src = super.fetchFromGitHub {
-          owner = "khanghugo";
-          repo = "slock";
-          rev = "8279acab9bbae8e697e4782a4da638a3e3b31854";
-          sha256 = "101isjm90a2jdr9z336h1rxarppxfxvw4nvq3cid7nn32q66hyhn";
-        };
-        buildInputs = oldAttrs.buildInputs ++ [
-          self.imlib2 
-          self.xorg.libXinerama 
-          self.xorg.libXft
-        ]; 
-      });
-
-      st = super.st.overrideAttrs (oldAttrs: rec {
-        src = super.fetchFromGitHub {
-          owner = "khanghugo";
-          repo = "st";
-          rev = "8f5002c2499c8a61e0331e47907c2f08a98d8885";
-          sha256 = "0nh84sry02qqmpq2lbcdvcga3xskj471w9qbh3d9h1mvplqvqa77";
-        };
-      });
-    })
-  ];
-		
-
-  ########
-  ## INPUT
-  ########
+  # input
   services.xserver = {
     layout = "us, us";
     xkbVariant = "colemak_dh, ";
     xkbOptions = "grp:shifts_toggle";
-	};
-	
-  
-  #######
-  ## CUPS
-  #######
-    services.printing.enable = true;
+  };
 
-
-  ###########
-  ## PIPEWIRE
-  ###########
+  # pipewire
   security.rtkit.enable = true;
+  hardware.pulseaudio.enable = false;
   services.pipewire = {
     enable = true;
+    audio.enable = true;
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-
-    #jack.enable = true;
+    # jack.enable = true;
   };
 
-
-  ##########
-  ## ACCOUNT
-  ##########
-  users.users.khang = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ]; 
-    initialPassword = "123456"; # Enable ‘sudo’ for the user.
-  };
-  ## System wide
+  # default shell
   users = {
     defaultUserShell = pkgs.bash;
   } ;
 
+  # network
+  networking.networkmanager = {
+    enable = true;
+    dhcp = "dhcpcd";
+  };
+
+  # dns
+  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
+
+  # hostname
+  networking.hostName = "painmachine"; # Define your hostname.
+  # wireless is handled by networkmanager
+  #networking.wireless = {
+  #  enable = true;  # Enables wireless support via wpa_supplicant. 
+  #  userControlled.enable = true;
+  #};
+
+  # steam controller
+  hardware.steam-hardware.enable = true;
+
+  # bluetooth
+  hardware.bluetooth.enable = true;
+  # services.blueman.enable = true; 
+
+  # virtualization
+  virtualisation.libvirtd.enable = true;
+  boot.kernelModules = [ "kvm-amd" ];
+  programs.dconf.enable = true;
+  boot.kernelParams = [ "amd_iommu=on" "pcie_aspm=off" ];
 
   ##########
   ## PACKAGE
   ##########
+  # allow unfree
+  nixpkgs.config.allowUnfree = true;
+
+  # package
   environment.systemPackages = with pkgs; [
     # editors
-    vim
+    vim_configurable
     emacs
     sublime4
 
@@ -207,26 +113,34 @@
     pcmanfm
 
     # dev
-    git
-    gnumake
-    gcc
     python310
     man
     man-pages
+    docker
+    docker-compose
 
     # utils
-	  pfetch
     yt-dlp
     p7zip
-    xclip
     wget
     curl
+    pciutils
+    feh # for dwm background image, ~/Pictures/.bg/anyname.png
+    
+    # loonix
+    pfetch
+    xclip
+    alsa-utils
+    flameshot
+    tree
+    htop
 
     # app
     easyeffects
     flatpak
     gimp
     mpv
+    qbittorrent
 
     # suckless
     dwm
@@ -235,75 +149,242 @@
     dmenu
     st
 
-    # library
+    # virtual machine
+    virt-manager
+    qemu
+    win-qemu
+
+    # gnome
+
+    # more
+    steam-run
   ];
 
+  # flatpak
+  services.flatpak.enable = true;
+  # xdg.portal = {
+  #   enable = true; # goes with if no gnome
+  #   extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+  # };
 
-  ########
-  ## FONTS
-  ########
+  # enable slock
+  programs.slock.enable = true;
+
+  # kdeconnect
+  programs.kdeconnect.enable = true;
+
+  # font
   fonts.fonts = with pkgs; [
     font-awesome
     hack-font
     terminus_font
+    dejavu_fonts
+    liberation_ttf
+    corefonts
   ];
 
+  # docker
+  virtualisation.docker.enable = true;
+  virtualisation.docker.enableOnBoot = true;
+  
 
-  ##############
-  ## ENVIRONMENT
-  ##############
-  # annoying ask password https://github.com/NixOS/nixpkgs/issues/24311
-  environment.extraInit = ''
-    unset -v SSH_ASKPASS
-  '';
+  # mysql
+  services.mysql = {
+    enable = true;
+    package = pkgs.mariadb;
+    # port = 3360;
+
+    settings.mysqld = {
+      bind-address = "0.0.0.0";
+      skip-grant-tables = true;
+      default-authentication-plugin = "mysql_native_password";
+    };
+
+  };
+  services.longview.mysqlPasswordFile = "/run/keys/mysql.password";
+
+  # portal is https://localhost:32400/web
+  #services.plex = {
+  #  enable = true;
+  #  openFirewall = true;
+  #};
+
+  #########
+  ## WM/DE
+  #########
+	services.xserver = {
+    enable = true;
+
+    videoDrivers = [ "nvidia" ];
+
+		desktopManager = {
+			# xfce.enable = true;
+      plasma5.enable = true;
+      # gnome.enable = true;
+		};
+
+    windowManager = {
+        dwm.enable = true;
+    };
+
+		displayManager = {
+			defaultSession = "none+dwm";
+      # gdm.enable = true;
+      
+      lightdm = {
+        enable = true;
+        extraConfig = ''
+          display-setup-script=xrandr --output DP-0 --mode 1920x1080 --rate 143.85 --primary --output HDMI-0 --off
+        '';
+        greeters.gtk = {
+          extraConfig= ''
+            active-monitor=0
+          '';
+        };
+      };
+
+      ## true if tty or dwm
+			startx.enable = true;
+		};
+
+    # wallpaper
+    desktopManager.wallpaper = {
+      mode = "fill";
+      # combineScreens = true;
+    };
+
+  };
+
+  # wayland
+  # programs.sway.enable = true;
+
+  # more gnome
+  # environment.gnome.excludePackages = (with pkgs; [
+  #   gnome-photos
+  #   gnome-tour
+  #   ]) ++ (with pkgs.gnome; [
+  #     cheese # webcam tool
+  #     gnome-music
+  #     gnome-terminal
+  #     gedit # text editor
+  #     epiphany # web browser
+  #     geary # email reader
+  #     evince # document viewer
+  #     gnome-characters
+  #     totem # video player
+  #     tali # poker game
+  #     iagno # go game
+  #     hitori # sudoku game
+  #     atomix # puzzle game
+  # ]);
+
+
+  ##########
+  ## CONFIG
+  ##########
+  nixpkgs.overlays = [
+    (self: super: {
+      dwm = super.dwm.overrideAttrs (oldAttrs: rec {
+        # src = super.fetchgit {
+        #   url = "https://github.com/khanghugo/dwm.git";
+        #   rev = "7af654c670b15f89e2cf5f5751bffdd7d07fb554";
+        #   sha256 = "NNZiNU9NV8M6+JYeHljsQm+fOsWUG4cSz+9tv1qOe5A=";
+        # }; 
+
+        src = /home/khang/suckless/dwm;
+      });
+       
+      slstatus = super.slstatus.overrideAttrs (oldAttrs: rec {
+        #patches = [
+		    #  /home/khang/default_suckless/slstatus-config-header.diff # this is a generated diff file if pulled from git
+		    #];
+
+        src = /home/khang/suckless/slstatus; 
+
+        buildInputs = oldAttrs.buildInputs ++ [
+          self.xorg.libX11
+        ];
+      }); 
+
+      dmenu = super.dwm.overrideAttrs (oldAttrs: rec {
+        src = super.fetchgit {
+          url = "https://github.com/khanghugo/dmenu.git";
+          rev = "85390236cc517055457a78a5bda79082a28efcee";
+          sha256 = "WwbCA/Uu6YUgEENyYltp95h7VMx6d1dPw/naEWZOegE=";
+        };
+      });
+
+      slock = super.slock.overrideAttrs (oldAttrs: rec {
+        src = super.fetchgit {
+          url = "https://github.com/khanghugo/slock.git";
+          rev = "8279acab9bbae8e697e4782a4da638a3e3b31854";
+          sha256 = "FnpoDBbD2tMiG3hbwnd3/d6seg7QjPFTblIokKrUMYA=";
+        };
+        buildInputs = oldAttrs.buildInputs ++ [
+          self.imlib2 
+          self.xorg.libXinerama 
+          self.xorg.libXft
+        ]; 
+      });
+
+      st = super.st.overrideAttrs (oldAttrs: rec {
+        src = super.fetchgit {
+          url = "https://github.com/khanghugo/st.git";
+          rev = "8f5002c2499c8a61e0331e47907c2f08a98d8885";
+          sha256 = "5yi8Mb27BpjagAsnHg6RU/ehHtuNLSrwrRgL4LMmCFo=";
+        };
+      });
+
+      vim_configurable = super.vim_configurable.customize {
+        name = "vim";
+
+        vimrcConfig.customRC = ''
+          set nocompatible
+
+          set backspace=indent,eol,start
+          
+          set number 
+          set showmatch 
+          set visualbell
+          syntax on
+           
+          set hlsearch
+          set smartcase
+          set ignorecase
+          set incsearch
+           
+          set autoindent
+          set shiftwidth=4
+          set smartindent
+          set smarttab
+          set softtabstop=4
+           
+          set ruler
+           
+          set undolevels=1000
+        '';
+      };
+    })
+  ];
+ 
+  # ctrl backspace function
   environment.etc."inputrc" = {
     text = pkgs.lib.mkDefault( pkgs.lib.mkAfter ''
       set completion-ignore-case On
     '');
   };
 
-  # vim
-  environment.variables.VIM = "/etc/vim";
-  environment.variables.VIMRUNTIME = "/etc/vim";
-  environment.etc."vim/vimrc".text = ''
-    set nocompatible
-    
-    set number 
-    set showmatch 
-    set visualbell
-     
-    set hlsearch
-    set smartcase
-    set ignorecase
-    set incsearch
-     
-    set autoindent
-    set shiftwidth=4
-    set smartindent
-    set smarttab
-    set softtabstop=4
-     
-    set ruler
-     
-    set undolevels=1000
-  '';
-  environment.etc."vim/defaults.vim".text = ''
-  '';
-
   # mpv
-  environment.etc."mpv.conf".text = ''
+  environment.variables.MPV_HOME = "/etc/mpv"; # mpv is not using /etc/mpv for sys wide and also the standard on mpv is all over the place....
+  environment.etc."mpv/mpv.conf".text = ''
     force-window=immediate
     keep-open=yes
     keep-open-pause=yes
-    volume=60
+    volume=65
   '';
 
-
-  ###########
-  ## PROGRAMS
-  ###########
-  programs = {
-    bash = {
+  # bash
+  programs.bash = {
       enableCompletion = true;
 
       shellAliases = {
@@ -312,57 +393,57 @@
         wiki = "lynx gopher://gopherpedia.com";
         ddg = "lynx https://lite.duckduckgo.com/lite";
         rm = "rm -I";
+        ".." = "cd ..";
+        "..." = ".. && ..";
       };
 
       shellInit = ''
       '';
-    }; 
-
-    slock.enable = true;
   };
 
+  # default text editor, does not work that well on gnome or kde
+  # programs.vim.defaultEditor = true;
 
-
-  ##########
-  ## SERVICES
-  ##########
-  systemd.services = {
+  
+  ########
+  ## USER
+  ########
+  users.users.khang = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "docker" "qemu-libvirtd" "libvirtd" "networkmanager" ]; 
+    initialPassword = "123456"; # Enable ‘sudo’ for the user.
   };
-  security.pki.certificateFiles = [
-    "/home/khang/Downloads/openvpn/ca.crt"
-    "/home/khang/Downloads/openvpn/taarst.crt"
 
-  ];
-  services.flatpak.enable = true;
-  xdg.portal.enable = true; # goes with if no gnome
-
-
-  ##########
-  ## NETWORK
-  ##########
-  networking.networkmanager = {
+  #######
+  ## STEAM
+  #######
+  programs.steam = {
     enable = true;
-    dhcp = "dhcpcd";
+    remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
+    dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
+  };
+  nixpkgs.config.packageOverrides = pkgs: {
+    steam = pkgs.steam.override {
+      extraPkgs = pkgs: with pkgs; [
+        pango
+        SDL_Pango
+        SDL
+        SDL_ttf
+      ];
+    };
   };
 
-  networking.hostName = "painmachine"; # Define your hostname.
-  #networking.wireless = {
-  #  enable = true;  # Enables wireless support via wpa_supplicant. 
-  #  userControlled.enable = true;
-  #};
-
-
-  #########
+  ##########
   ## NVIDIA
-  #########
+  ##########
   hardware.nvidia = {
     modesetting.enable = true;
 
-    prime = {
-      sync.enable = true;
-      intelBusId = "PCI:0:2:0";
-      nvidiaBusId = "PCI:1:0:0";
-    };
+    #prime = {
+    #  sync.enable = true;
+    #  intelBusId = "PCI:0:2:0";
+    #  nvidiaBusId = "PCI:1:0:0";
+    #};
   };
 
   #hardware.opengl = {
@@ -381,9 +462,6 @@
   ### REMNANTS
 
   networking.useDHCP = false;
-  networking.interfaces.eno1.useDHCP = true;
-  networking.interfaces.wlo1.useDHCP = true;
-  # services.xserver.libinput.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
