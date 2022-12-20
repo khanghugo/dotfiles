@@ -177,10 +177,10 @@ in
 
   # flatpak
   services.flatpak.enable = true;
-  # xdg.portal = {
-  #   enable = true; # goes with if no gnome
-  #   extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  # };
+   xdg.portal = {
+     enable = true; # goes with if no gnome
+     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+   };
 
   # enable slock
   programs.slock.enable = true;
@@ -204,9 +204,9 @@ in
   
 
   # mysql
-  services.mysql = {
-    enable = true;
-    package = pkgs.mariadb;
+  # services.mysql = {
+    # enable = true;
+    # package = pkgs.mariadb;
     # port = 3360;
 
     # settings.mysqld = {
@@ -215,7 +215,7 @@ in
     #   default-authentication-plugin = "mysql_native_password";
     # };
 
-  };
+  # };
   # services.longview.mysqlPasswordFile = "/run/keys/mysql.password";
 
   # portal is https://localhost:32400/web
@@ -227,6 +227,9 @@ in
   # backlight
   programs.light.enable = true;
 
+  # no askpass because janky
+  programs.ssh.askPassword = "";
+
   #########
   ## WM/DE
   #########
@@ -237,7 +240,7 @@ in
 
 		desktopManager = {
 			# xfce.enable = true;
-      plasma5.enable = true;
+      # plasma5.enable = true;
       # gnome.enable = true;
 		};
 
@@ -303,11 +306,11 @@ in
   nixpkgs.overlays = [
     (self: super: {
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
-        # src = super.fetchgit {
-        #   url = "https://github.com/khanghugo/dwm.git";
-        #   rev = "7af654c670b15f89e2cf5f5751bffdd7d07fb554";
-        #   sha256 = "NNZiNU9NV8M6+JYeHljsQm+fOsWUG4cSz+9tv1qOe5A=";
-        # }; 
+         # src = super.fetchgit {
+         #   url = "https://github.com/khanghugo/dwm.git";
+         #   rev = "7af654c670b15f89e2cf5f5751bffdd7d07fb554";
+         #   sha256 = "NNZiNU9NV8M6+JYeHljsQm+fOsWUG4cSz+9tv1qOe5A=";
+         # }; 
 
         src = /home/khang/suckless/dwm;
       });
@@ -317,14 +320,14 @@ in
 		    #  /home/khang/default_suckless/slstatus-config-header.diff # this is a generated diff file if pulled from git
 		    #];
 
-        src = /home/khang/suckless/slstatus; 
+        # src = /home/khang/suckless/slstatus; 
 
         buildInputs = oldAttrs.buildInputs ++ [
           self.xorg.libX11
         ];
       }); 
 
-      dmenu = super.dwm.overrideAttrs (oldAttrs: rec {
+      dmenu = super.dmenu.overrideAttrs (oldAttrs: rec {
         src = super.fetchgit {
           url = "https://github.com/khanghugo/dmenu.git";
           rev = "85390236cc517055457a78a5bda79082a28efcee";
@@ -357,7 +360,7 @@ in
         name = "vim";
 
         vimrcConfig.customRC = ''
-          set nocompatible
+          set nocompatibletrast
 
           set backspace=indent,eol,start
           
@@ -487,6 +490,6 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "22.05"; # Did you read the comment?
+  system.stateVersion = "22.11"; # Did you read the comment?
 }
 
