@@ -306,20 +306,16 @@ in
   nixpkgs.overlays = [
     (self: super: {
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
-         src = super.fetchgit {
-           url = "https://github.com/khanghugo/dwm.git";
-           rev = "a5b61f36119e12c5d0adbc1bda632a70c945cecb";
-           sha256 = "3jjbbQ/9D3Z95duLeK5A5FhptHTj/v86VfE8T1kRFJg=";
-         }; 
+        src = super.fetchgit {
+          url = "https://github.com/khanghugo/dwm.git";
+          rev = "ff7a31d16c916fc727bbb1a8d85b87590c2a05a3";
+          sha256 = "fDShCU9trMlPEZo9vrMdJlp7HlGTGXjdY+hTHc4dqPI=";
+        }; 
 
         # src = /home/khang/suckless/dwm;
       });
        
       slstatus = super.slstatus.overrideAttrs (oldAttrs: rec {
-        #patches = [
-		    #  /home/khang/default_suckless/slstatus-config-header.diff # this is a generated diff file if pulled from git
-		    #];
-
         # src = /home/khang/suckless/slstatus; 
 
         buildInputs = oldAttrs.buildInputs ++ [
