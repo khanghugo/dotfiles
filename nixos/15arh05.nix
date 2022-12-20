@@ -306,13 +306,13 @@ in
   nixpkgs.overlays = [
     (self: super: {
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
-         # src = super.fetchgit {
-         #   url = "https://github.com/khanghugo/dwm.git";
-         #   rev = "7af654c670b15f89e2cf5f5751bffdd7d07fb554";
-         #   sha256 = "NNZiNU9NV8M6+JYeHljsQm+fOsWUG4cSz+9tv1qOe5A=";
-         # }; 
+         src = super.fetchgit {
+           url = "https://github.com/khanghugo/dwm.git";
+           rev = "a5b61f36119e12c5d0adbc1bda632a70c945cecb";
+           sha256 = "3jjbbQ/9D3Z95duLeK5A5FhptHTj/v86VfE8T1kRFJg=";
+         }; 
 
-        src = /home/khang/suckless/dwm;
+        # src = /home/khang/suckless/dwm;
       });
        
       slstatus = super.slstatus.overrideAttrs (oldAttrs: rec {
@@ -360,7 +360,7 @@ in
         name = "vim";
 
         vimrcConfig.customRC = ''
-          set nocompatibletrast
+          set nocompatible
 
           set backspace=indent,eol,start
           
