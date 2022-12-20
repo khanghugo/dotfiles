@@ -308,8 +308,8 @@ in
       dwm = super.dwm.overrideAttrs (oldAttrs: rec {
         src = super.fetchgit {
           url = "https://github.com/khanghugo/dwm.git";
-          rev = "ff7a31d16c916fc727bbb1a8d85b87590c2a05a3";
-          sha256 = "fDShCU9trMlPEZo9vrMdJlp7HlGTGXjdY+hTHc4dqPI=";
+          rev = "851be6e684ebd176c3a6099b5f1356034a896636";
+          sha256 = "vGCtdzt0VTyFqEknyQ/VlVF7trh1mju7CqkvhiCQ7MI=";
         }; 
 
         # src = /home/khang/suckless/dwm;
