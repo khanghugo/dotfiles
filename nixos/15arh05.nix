@@ -30,7 +30,7 @@ in
   # boot.supportedFilesystems = [ "ntfs" ];
 
   # kernel
-  # boot.kernelPackages = pkgs.linuxPackages_latest; # will get bleeding edge
+    boot.kernelPackages = pkgs.linuxPackages_latest; # will get bleeding edge
 
   # bootloader
   boot.loader = {
@@ -48,6 +48,10 @@ in
     xkbVariant = "colemak_dh, ";
     xkbOptions = "grp:shifts_toggle";
   };
+
+  # laptop touchpad
+  services.xserver.libinput.enable = true;
+  services.xserver.libinput.touchpad.tapping = true;
 
   # pipewire
   security.rtkit.enable = true;
